@@ -1,5 +1,0 @@
-{% if frctl.project.size %}
-<div class="Navigation-group">
-{{ nav.tree(frctl.project, entity, request) }}
-</div>
-{% endif %}
