@@ -1,5 +1,6 @@
 {% if frctl.current.size %}
 <div class="Navigation-group">
 {{ nav.tree(frctl.current, entity, request) }}
+{# {{ frctl.current.size | dump }} #}
 </div>
 {% endif %}

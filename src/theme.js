@@ -22,7 +22,7 @@ module.exports = function(options){
     });
 
     config.panels  = config.panels || ['html', 'view', 'context', 'resources', 'info', 'notes'];
-    config.nav     = config.nav || ['components','docs','assets'];
+    config.nav     = config.nav || ['components','docs','current','assets'];
     config.styles  = [].concat(config.styles).concat(config.stylesheet).filter(url => url).map(url => (url === 'default' ? `/${config.static.mount}/css/${config.skin}.css` : url));
     config.scripts = [].concat(config.scripts).filter(url => url).map(url => (url === 'default' ? `/${config.static.mount}/js/mandelbrot.js` : url));
     config.favicon = config.favicon || `/${config.static.mount}/favicon.ico`;
@@ -45,6 +45,10 @@ module.exports = function(options){
     });
 
     theme.addRoute('/components', {
+        redirect: '/'
+    });
+
+    theme.addRoute('/current', {
         redirect: '/'
     });
 
@@ -85,6 +89,32 @@ module.exports = function(options){
         }
     }, getResources);
 
+    theme.addRoute('/current/preview/:handle', {
+        handle: 'preview',
+        view: 'pages/current/preview.nunj'
+    }, getHandles);
+
+    theme.addRoute('/current/render/:handle', {
+        handle: 'render',
+        view: 'pages/current/render.nunj'
+    }, getHandles);
+
+    theme.addRoute('/current/detail/:handle', {
+        handle: 'component',
+        view: 'pages/current/detail.nunj'
+    }, getHandles);
+
+    theme.addRoute('/current/raw/:handle/:asset', {
+        handle: 'current-resource',
+        static: function(params, app){
+            const component = app.component.find(`@${params.handle}`);
+            if (component) {
+                return Path.join(component.viewDir, params.asset);
+            }
+            throw new Error('Component not found');
+        }
+    }, getResources);
+
     theme.addRoute('/docs/:path([^\?]+?)', {
         handle: 'page',
         view: 'pages/doc.nunj'
@@ -100,6 +130,7 @@ module.exports = function(options){
 
     function getHandles(app) {
         app.components.on('updated', () => (handles = null));
+        app.current.on('updated', () => (handles = null));
         if (handles) {
             return handles;
         }
@@ -110,6 +141,12 @@ module.exports = function(options){
                 comp.variants().each(variant => handles.push(variant.handle));
             }
         });
+        // app.current.flatten().each(comp => {
+        //     handles.push(comp.handle);
+        //     if (comp.variants().size > 1) {
+        //         comp.variants().each(variant => handles.push(variant.handle));
+        //     }
+        // });
         handles = handles.map(h => ({handle: h}));
         return handles;
     }
@@ -124,6 +161,14 @@ module.exports = function(options){
                 }
             }));
         });
+        // app.current.flatten().each(comp => {
+        //     params = params.concat(comp.resources().flatten().toArray().map(res => {
+        //         return {
+        //             handle: comp.handle,
+        //             asset: res.base
+        //         }
+        //     }));
+        // });
         return params;
     }
 

@@ -15,6 +15,8 @@ module.exports = function(theme, env, app){
             return theme.urlFromRoute('page', {path: item.path});
         } else if (item.isComponent || item.isVariant) {
             return theme.urlFromRoute('component', {handle: item.handle});
+        } else if (item.isCurrent || item.isVariant) {
+            return theme.urlFromRoute('current', {handle: item.handle});
         } else if (item.isAssetSource) {
             return theme.urlFromRoute('asset-source', {name: item.name});
         } else if (item.isAsset) {
@@ -71,7 +73,9 @@ module.exports = function(theme, env, app){
                 const pathify = env.engine.getGlobal('path');
                 url = pathify.call(this, url);
                 return `<a href="${url}">${handle}</a>`;
+
             } catch(e) {
+              console.log('BIG ERROR', e);
                 return handle;
             }
         });
